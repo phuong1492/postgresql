@@ -144,7 +144,7 @@ module PostgreSQL
 
           def self.read(file = 'pg_ident.conf', sort: true)
             pg_hba = new
-            pg_hba.read!(file, sort:)
+            pg_hba.read!(file, sort: sort)
 
             pg_hba
           end

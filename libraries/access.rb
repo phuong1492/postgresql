@@ -151,7 +151,7 @@ module PostgreSQL
 
           def self.read(file = 'pg_hba.conf', sort: false)
             pg_hba = new
-            pg_hba.read!(file, sort:)
+            pg_hba.read!(file, sort: sort)
 
             pg_hba
           end
@@ -284,7 +284,7 @@ module PostgreSQL
           def initialize(type:, database:, user:, address:, auth_method:, auth_options: nil, comment: nil, position: nil)
             raise PgHbaInvalidEntryType unless %w(host hostssl hostnossl hostgssenc hostnogssenc).include?(type)
 
-            super(type:, database:, user:, auth_method:, auth_options:, comment:, position:)
+            super(type: type, database: database, user: user, auth_method: auth_method, auth_options: auth_options, comment: comment, position: position)
             @address = address
           end
 
