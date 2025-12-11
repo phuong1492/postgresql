@@ -24,22 +24,22 @@ property :sensitive, [true, false],
 
 property :version, [String, Integer],
           default: '17',
-          coerce: proc(&:to_s),
+          coerce: proc { |p| p.to_s },
           description: 'Version to install'
 
 property :source, [String, Symbol],
           default: :repo,
-          coerce: proc(&:to_sym),
+          coerce: proc { |p| p.to_sym },
           equal_to: %i(repo os),
           description: 'Installation source'
 
 property :client_packages, [String, Array],
-          default: lazy { default_client_packages(version: version, source: source) },
+          default: lazy { default_client_packages(version:, source:) },
           coerce: proc { |p| Array(p) },
           description: 'Client packages to install'
 
 property :server_packages, [String, Array],
-          default: lazy { default_server_packages(version: version, source: source) },
+          default: lazy { default_server_packages(version:, source:) },
           coerce: proc { |p| Array(p) },
           description: 'Server packages to install'
 
@@ -126,12 +126,6 @@ action_class do
       remote_file '/etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY' do
         source new_resource.yum_gpg_key_uri
         sensitive new_resource.sensitive
-        notifies :run, 'execute[import-pgdg-gpg-key]', :immediately
-      end
-
-      execute 'import-pgdg-gpg-key' do
-        command 'rpm --import /etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
-        action :nothing
       end
 
       yum_repository "PostgreSQL #{new_resource.version}" do
@@ -140,7 +134,6 @@ action_class do
         baseurl yum_repo_url('https://download.postgresql.org/pub/repos/yum')
         enabled new_resource.repo_pgdg
         gpgcheck true
-        repo_gpgcheck true
         gpgkey 'file:///etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
         action repo_action
         only_if { new_resource.repo_pgdg || new_resource.setup_repo_pgdg }
@@ -152,7 +145,6 @@ action_class do
         baseurl yum_common_repo_url
         enabled new_resource.repo_pgdg_common
         gpgcheck true
-        repo_gpgcheck true
         gpgkey 'file:///etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
         action repo_action
         only_if { new_resource.repo_pgdg_common || new_resource.setup_repo_pgdg_common }
@@ -165,7 +157,6 @@ action_class do
         make_cache false
         enabled new_resource.repo_pgdg_source
         gpgcheck true
-        repo_gpgcheck true
         gpgkey 'file:///etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
         action repo_action
         only_if { new_resource.repo_pgdg_source || new_resource.setup_repo_pgdg_source }
@@ -178,7 +169,6 @@ action_class do
         make_cache false
         enabled new_resource.repo_pgdg_updates_testing
         gpgcheck true
-        repo_gpgcheck true
         gpgkey 'file:///etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
         action repo_action
         only_if { new_resource.repo_pgdg_updates_testing || new_resource.setup_repo_pgdg_updates_testing }
@@ -191,7 +181,6 @@ action_class do
         make_cache false
         enabled new_resource.repo_pgdg_source_updates_testing
         gpgcheck true
-        repo_gpgcheck true
         gpgkey 'file:///etc/pki/rpm-gpg/PGDG-RPM-GPG-KEY'
         action repo_action
         only_if { new_resource.repo_pgdg_source_updates_testing || new_resource.setup_repo_pgdg_source_updates_testing }
@@ -202,7 +191,7 @@ action_class do
 
       package 'apt-transport-https'
 
-      apt_repository "postgresql_org_repository_#{new_resource.version}" do
+      apt_repository "postgresql_org_repository_#{new_resource.version.to_s}" do
         uri new_resource.apt_repository_uri
         components ['main', new_resource.version.to_s]
         distribution "#{node['lsb']['codename']}-pgdg"
