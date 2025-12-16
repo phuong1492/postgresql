@@ -39,7 +39,7 @@ property :client_packages, [String, Array],
           description: 'Client packages to install'
 
 property :server_packages, [String, Array],
-          default: lazy { default_server_packages(version version:, source: source) },
+          default: lazy { default_server_packages(version: version, source: source) },
           coerce: proc { |p| Array(p) },
           description: 'Server packages to install'
 
